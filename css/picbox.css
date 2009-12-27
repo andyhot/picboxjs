@@ -1,0 +1,88 @@
+/* PICBOX */
+
+#pbOverlay {
+	position: fixed;
+	z-index: 9999;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+    background: #000;
+	cursor: pointer;
+}
+
+#pbCloseBtn {
+	position: fixed;
+	right: 0;
+	top: 0;
+	display: block;
+	width: 50px;
+	height: 50px;
+	background: url(closebutton.png) no-repeat top left;
+}
+
+.pbLoading {
+	background: #000 url(loading.gif) no-repeat center !important;
+}
+
+#pbImage, #pbBottomContainer {
+	position: fixed;
+	z-index: 9999;
+	overflow: hidden;
+}
+
+#pbImage {
+	border: none;
+	background: #000 no-repeat;
+	-moz-box-shadow: 0 0 40px #000;
+	-webkit-box-shadow: 0 0 40px #000;
+	cursor: move;
+}
+
+#pbBottomContainer {
+	font-family: Verdana, Arial, Geneva, Helvetica, sans-serif;
+	font-size: 10px;
+	text-align: center;
+	color: #EEE;
+	line-height: 1.4em;
+	width: 100%;
+	bottom: 0;
+	left: 0;
+}
+
+#pbCaption {
+	font-weight: bold;
+}
+
+#pbArrows {
+	display: block;
+	width: 20%;
+	margin: auto;
+}
+
+/* ie6 only */
+#pbArrows a:link, #pbArrows a:visited {
+	color: #FFF;
+}
+/*          */
+
+#pbPrevLink, #pbNextLink {
+	display: block;
+	width: 49%;
+	height: 40px;
+	outline: none;
+	padding: 2px 0;
+	text-indent: -9000px;
+}
+
+#pbPrevLink {
+	float: left;
+	background: url(prevarrow.png) no-repeat 0 15%;
+}
+
+#pbNextLink {
+	float: right;
+	background: url(nextarrow.png) no-repeat 100% 15%;
+}
+
+/* END PICBOX */
