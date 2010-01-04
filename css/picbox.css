@@ -40,37 +40,6 @@
 	cursor: move;
 }
 
-#pbArrows {
-	display: block;
-	width: 20%;
-	margin: auto;
-}
-
-/* ie6 only */
-#pbArrows a:link, #pbArrows a:visited {
-	color: #FFF;
-}
-/*          */
-
-#pbPrevLink, #pbNextLink {
-	display: block;
-	width: 49%;
-	height: 40px;
-	outline: none;
-	padding: 2px 0;
-	text-indent: -9000px;
-}
-
-#pbPrevLink {
-	float: left;
-	background: url(prevarrow.png) no-repeat 0 15%;
-}
-
-#pbNextLink {
-	float: right;
-	background: url(nextarrow.png) no-repeat 100% 15%;
-}
-
 #pbBottomContainer {
 	font-family: Verdana, Arial, Geneva, Helvetica, sans-serif;
 	font-size: 10px;
@@ -78,22 +47,61 @@
 	color: #EEE;
 	line-height: 1.4em;
 	width: 100%;
-	bottom: 0;
+	bottom: 10px;
 	left: 0;
 }
 
-#pbCloseLink {
-	display: block;
-	float: right;
-	width: 66px;
-	height: 22px;
-	background: transparent url(closelabel.gif) no-repeat center;
-	margin: 5px 0;
-	outline: none;
+#pbBottom {
+	width: 300px;
+	margin: auto;
 }
 
 #pbCaption {
 	font-weight: bold;
+	margin-bottom: 20px
+}
+
+#pbNav {
+	display: block;
+	width: 250px;
+	margin: auto;
+	margin-top: 5px;
+}
+
+/* ie6 only */
+#pbNav a:link, #pbNav a:visited {
+	color: #FFF;
+}
+/*          */
+
+#pbNav > * {
+	display: inline-block;
+	width: 40px;
+	height: 40px;
+	outline: none;
+	padding: 2px;
+	text-indent: -9000px;
+}
+
+#pbPrevLink {
+	background: url(prevarrow.png) no-repeat 0 2px;
+	float: left;
+}
+
+#pbNextLink {
+	background: url(nextarrow.png) no-repeat 0 2px;
+	float: right;
+}
+
+#pbZoomBtn {
+	width: 49px;
+	padding: 2px 0;
+	background: url(resizearrows.png) no-repeat -49px 2px;
+	margin: auto;
+}
+
+#pbZoomBtn.zoomed {
+	background-position: 0 2px;
 }
 
 /* END PICBOX */

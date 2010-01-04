@@ -2,7 +2,7 @@
 	Picbox v2.0
 	(c) 2009 Ben Kay <http://bunnyfire.co.uk>
 
-	Based on code from Slimbox v1.7 (and glances at v2.02) - The ultimate lightweight Lightbox clone
+	Based on code from Slimbox v1.7 - The ultimate lightweight Lightbox clone
 	(c) 2007-2009 Christophe Beyls <http://www.digitalia.be>
 	MIT-style license.
 */
@@ -34,13 +34,14 @@
 			]).css("display", "none")
 		);
 		
-		bottom = $('<div id=pbBottom" />').appendTo(bottomContainer).append(
+		bottom = $('<div id="pbBottom" />').appendTo(bottomContainer).append(
 			caption = $('<div id="pbCaption" />')[0],
-			number = $('<div id="pbNumber" />')[0],
-			$('<div id="pbArrows" />').append(
+			$('<div id="pbNav" />').append(
 				prevLink = $('<a id="pbPrevLink" href="#">Prev</a>').click(previous)[0],
+				zoomBtn  = $('<a id="pbZoomBtn" href="#">Full Size</a>').click(doubleClick)[0],
 				nextLink = $('<a id="pbNextLink" href="#">Next</a>').click(next)[0]
 			),
+			number = $('<div id="pbNumber" />')[0],
 			$('<div style="clear: both;" />')
 		);
 		
@@ -53,11 +54,11 @@
 			});
 		}
 		
- 		$(image).jqDrag(function() {
-			var i = $(image);
-			var pos = i.position();
-			imageX = (pos.left - win.scrollLeft()) + i.width()/2;
-			imageY = (pos.top - win.scrollTop()) + i.height()/2;
+		$(image).jqDrag(function() {
+			var i = $(image), pos = i.position();
+			imageX = (pos.left - win.scrollLeft()) + i.width() / 2;
+			imageY = (pos.top - win.scrollTop()) + i.height() / 2;
+			$(zoomBtn).addClass("zoomed");
 		}); 
 	});
 	
@@ -103,14 +104,13 @@
 		var links = this;
 		
 		$(links).unbind("click").click(function() {
-			var link = this;
+			var link = this, linksMapped = [];
 			// Build the list of images that will be displayed
-		   filteredLinks = $.grep(links, function(el) {
+			filteredLinks = $.grep(links, function(el) {
 				return linksFilter.call(link, el);
 			});
 			
 			// Can't use $.map() as it flattens array
-			var linksMapped = []
 			for (var i = 0; i < filteredLinks.length; i++)
 				linksMapped[i] = linkMapper(filteredLinks[i]);
 			return $.picbox(linksMapped, $.inArray(this, filteredLinks), _options);
@@ -126,9 +126,9 @@
 	function position() {
 		var scroll = {x: win.scrollLeft(), y: win.scrollTop()}, size = {x: win.width(), y: win.height()};
 		middleX = size.x / 2;
-		middleY = size.y / 2.2; //ooooh magic number
+		middleY = size.y / 2.3; //ooooh magic number
 
- 		if (browserIsCrap) {
+		if (browserIsCrap) {
 			middleX = middleX + scroll.x;
 			middleY = middleY + scroll.y;
 			$(overlay).css({left: scroll.x, top: scroll.y, width: size.x, height: size.y});
@@ -234,6 +234,7 @@
 	}
 
 	function scrollZoom(e, delta) {
+		$(zoomBtn).addClass("zoomed");
 		return zoomImage(delta);
 	}
 	
@@ -244,8 +245,10 @@
 
 	function doubleClick() {
 		if (currentSize == initialSize && Math.abs((imageX - middleX) + (imageY - middleY)) < 2) {
+			$(zoomBtn).addClass("zoomed");
 			resizeImage(1);
 		} else {
+			$(zoomBtn).removeClass("zoomed");
 			resetImageCenter();
 			resizeImage(initialSize);
 		}
