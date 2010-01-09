@@ -61,9 +61,19 @@
 	margin-bottom: 20px
 }
 
+#pbCaptionBg {
+	background-color: #000;
+	position: relative;
+	display: block;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
 #pbNav {
 	display: block;
-	width: 250px;
+	width: 200px;
 	margin: auto;
 	margin-top: 5px;
 }
@@ -76,32 +86,39 @@
 
 #pbNav > * {
 	display: inline-block;
-	width: 40px;
-	height: 40px;
+	width: 70px;
+	height: 65px;
 	outline: none;
-	padding: 2px;
 	text-indent: -9000px;
+	background: url(navbtns.png) no-repeat;
 }
 
 #pbPrevLink {
-	background: url(prevarrow.png) no-repeat 0 2px;
+	background-position: -70px 0;
 	float: left;
 }
 
+#pbPrevLink.greyed {
+	background-position: 0 0;
+}
+
 #pbNextLink {
-	background: url(nextarrow.png) no-repeat 0 2px;
+	background-position: -260px 0;
 	float: right;
 }
 
+#pbNextLink.greyed {
+	background-position: -330px;
+}
+
 #pbZoomBtn {
-	width: 49px;
-	padding: 2px 0;
-	background: url(resizearrows.png) no-repeat -49px 2px;
+	width: 60px;
+	background-position: -140px 0;
 	margin: auto;
 }
 
 #pbZoomBtn.zoomed {
-	background-position: 0 2px;
+	background-position: -200px 0;
 }
 
 /* END PICBOX */
