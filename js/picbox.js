@@ -8,7 +8,7 @@
 */
 (function($) {
 	
-	var win = $(window), options, images, activeImage = -1, activeURL, prevImage, nextImage, ie6 = ((window.XMLHttpRequest == undefined) && (ActiveXObject != undefined)), browserIsCrap, middleX, middleY, imageX, imageY, currentSize, initialSize, imageDrag,
+	var win = $(window), options, images, activeImage = -1, activeURL, prevImage, nextImage, ie6 = ((window.XMLHttpRequest == undefined) && (ActiveXObject != undefined)), browserIsCrap, middleX, middleY, imageX, imageY, currentSize, initialSize, imageDrag, timer,
 	
 	// Preload images
 	preload = {}, preloadPrev = new Image(), preloadNext = new Image(),
@@ -59,7 +59,7 @@
 			imageX = (pos.left - win.scrollLeft()) + i.width() / 2;
 			imageY = (pos.top - win.scrollTop()) + i.height() / 2;
 			$(zoomBtn).addClass("zoomed");
-		}); 
+		});
 	});
 	
 	$.picbox = function(_images, startImage, _options) {
@@ -82,10 +82,10 @@
 			_images = [[_images, startImage]];
 			startImage = 0;
 		}
-
-		$(overlay).attr("opacity", 0).show().fadeTo(options.overlayFadeDuration, options.overlayOpacity);
+		
 		position();
 		setup(1);
+		$(overlay).attr("opacity", 0).fadeTo(options.overlayFadeDuration, options.overlayOpacity);
 
 		images = _images;
 		options.loop = options.loop && (images.length > 1);
@@ -126,7 +126,7 @@
 	function position() {
 		var scroll = {x: win.scrollLeft(), y: win.scrollTop()}, size = {x: win.width(), y: win.height()};
 		middleX = size.x / 2;
-		middleY = size.y / 2.3; //ooooh magic number
+		middleY = size.y / 2;
 
 		if (browserIsCrap) {
 			middleX = middleX + scroll.x;
@@ -145,11 +145,19 @@
 			});
 		});
 
-		//overlay.style.display = open ? "" : "none";
+		overlay.style.display = open ? "" : "none";
+		
+		clearTimeout(timer);
 
 		var fn = open ? "bind" : "unbind";
 		$(document)[fn]("keydown", keyDown);
 		$(document)[fn]("mousewheel", scrollZoom);
+		$(document)[fn]("mousemove", function() {
+			clearTimeout(timer);
+			$(bottom).fadeIn();
+			timer = setTimeout(function(){$(bottom).fadeOut()}, 3000);
+		});
+		
 	}
 	
 	function keyDown(event) {
@@ -183,8 +191,8 @@
 
 			$(caption).html(images[activeImage][1] || "");
 			$(number).html((((images.length > 1) && options.counterText) || "").replace(/{x}/, activeImage + 1).replace(/{y}/, images.length));
-			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; $(prevLink).css("visibility", "");}
-			if (nextImage >= 0) {preloadNext.src = images[nextImage][0]; $(nextLink).css("visibility", "");}
+			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; $(prevLink).removeClass("greyed");}
+			if (nextImage >= 0) {preloadNext.src = images[nextImage][0]; $(nextLink).removeClass("greyed");}
 
 			$(bottomContainer).css("display", "");
 
@@ -199,7 +207,7 @@
 	function showImage(noAnim) {
 		resetImageCenter();
 
-		var mw = win.width()/1.3, mh = win.height()/1.3, size = 1;
+		var mw = win.width(), mh = win.height(), size = 1;
 		if ((preload.width > mw) || (preload.height > mh)) size = Math.min(mw/preload.width, mh/preload.height);
 		currentSize = initialSize = size;
 
@@ -258,14 +266,16 @@
 		preload.onload = function(){};
 		preload.src = preloadPrev.src = preloadNext.src = activeURL;
 		$(image).stop();
-		$([prevLink, nextLink]).css("visibility", "hidden");
+		$([prevLink, nextLink]).addClass("greyed");
+		$(zoomBtn).removeClass("zoomed");
 	}
 
 	function close() {
 		if (activeImage >= 0) {
 			stop();
 			activeImage = prevImage = nextImage = -1;
-			resizeImage(0, false, function() {$([image, bottomContainer]).hide()});
+			$(bottomContainer).hide();
+			resizeImage(0, false, function() {$(image).hide()});
 			$(overlay).stop().fadeOut(options.overlayFadeDuration, setup);
 		}
 
