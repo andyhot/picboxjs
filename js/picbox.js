@@ -66,7 +66,7 @@
 		options = $.extend({
 			loop: false,				// Allows to navigate between first and last images
 			overlayOpacity: 0.8,			// 1 is opaque, 0 is completely transparent (change the color in the CSS file)
-			overlayFadeDuration: 400,		// Duration of the overlay fade-in and fade-out animations (in milliseconds)
+			overlayFadeDuration: 100,		// Duration of the overlay fade-in and fade-out animations (in milliseconds)
 			animateResize: true,			// Whether to animate image resizes
 			resizeDuration: 300,			// Duration of each of the image resize animations (in milliseconds)
 			resizeEasing: "swing",			// swing uses the jQuery default easing)
@@ -85,7 +85,7 @@
 		
 		position();
 		setup(1);
-		$(overlay).attr("opacity", 0).fadeTo(options.overlayFadeDuration, options.overlayOpacity);
+		$(overlay).css("opacity", 0).fadeTo(options.overlayFadeDuration, options.overlayOpacity);
 
 		images = _images;
 		options.loop = options.loop && (images.length > 1);
