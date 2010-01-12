@@ -35,7 +35,7 @@
 		);
 		
 		bottom = $('<div id="pbBottom" />').appendTo(bottomContainer).append(
-			caption = $('<div id="pbCaption" />')[0],
+			caption = $('<span id="pbCaption" />')[0],
 			$('<div id="pbNav" />').append(
 				prevLink = $('<a id="pbPrevLink" href="#">Prev</a>').click(previous)[0],
 				zoomBtn  = $('<a id="pbZoomBtn" href="#">Full Size</a>').click(doubleClick)[0],
@@ -66,11 +66,11 @@
 		options = $.extend({
 			loop: false,				// Allows to navigate between first and last images
 			overlayOpacity: 0.8,			// 1 is opaque, 0 is completely transparent (change the color in the CSS file)
-			overlayFadeDuration: 100,		// Duration of the overlay fade-in and fade-out animations (in milliseconds)
-			animateResize: true,			// Whether to animate image resizes
+			overlayFadeDuration: 200,		// Duration of the overlay fade-in and fade-out animations (in milliseconds)
 			resizeDuration: 300,			// Duration of each of the image resize animations (in milliseconds)
-			resizeEasing: "swing",			// swing uses the jQuery default easing)
-			counterText: "Image {x} of {y}",	// Translate or change as you wish, or set it to false to disable counter text for image groups
+			resizeEasing: "swing",			// swing uses the jQuery default easing
+			controlsFadeDelay: 2000,		// Time delay before controls fade when not moving the mouse (in milliseconds)
+			counterText: false,				// Counter text. Use {x} for current image and {y} for total e.g. Image {x} of {y}
 			closeKeys: [27, 88, 67],		// Array of keycodes to close Picbox, default: Esc (27), 'x' (88), 'c' (67)
 			previousKeys: [37, 80],			// Array of keycodes to navigate to the previous image, default: Left arrow (37), 'p' (80)
 			nextKeys: [39, 78]			// Array of keycodes to navigate to the next image, default: Right arrow (39), 'n' (78)
@@ -124,9 +124,9 @@
 	*/
 	
 	function position() {
-		var scroll = {x: win.scrollLeft(), y: win.scrollTop()}, size = {x: win.width(), y: win.height()};
-		middleX = size.x / 2;
-		middleY = size.y / 2;
+		var scroll = {x: win.scrollLeft(), y: win.scrollTop()}, winsize = {x: win.width(), y: win.height()};
+		middleX = winsize.x / 2;
+		middleY = winsize.y / 2;
 
 		if (browserIsCrap) {
 			middleX = middleX + scroll.x;
@@ -134,7 +134,7 @@
 			$(overlay).css({left: scroll.x, top: scroll.y, width: size.x, height: size.y});
 		}
 
-		$(image).css({top: Math.max(0, middleY), left: Math.max(0, middleX), width: 1, height: 1});
+		$(image).css({top: middleY, left: middleX, width: '1px', height: '1px'});
 	}
 	
 	function setup(open) {
@@ -146,17 +146,11 @@
 		});
 
 		overlay.style.display = open ? "" : "none";
-		
-		clearTimeout(timer);
 
 		var fn = open ? "bind" : "unbind";
 		$(document)[fn]("keydown", keyDown);
 		$(document)[fn]("mousewheel", scrollZoom);
-		$(document)[fn]("mousemove", function() {
-			clearTimeout(timer);
-			$(bottom).fadeIn();
-			timer = setTimeout(function(){$(bottom).fadeOut()}, 3000);
-		});
+		$(document)[fn]("mousemove", mouseMove);
 		
 	}
 	
@@ -167,6 +161,12 @@
 			: $.inArray(code, options.nextKeys) >= 0 ? next()
 			: $.inArray(code, options.previousKeys) >= 0 ? previous()
 			: false;
+	}
+	
+	function mouseMove() {
+		clearTimeout(timer);
+		$(bottom).fadeIn();
+		timer = setTimeout(function(){$(bottom).fadeOut()}, options.controlsFadeDelay);
 	}
 	
 	function previous() {
@@ -218,21 +218,24 @@
 		overlay.className = "";
 	}
 	
-	function resizeImage(to, noAnim, chain) {
+	function resizeImage(to, noAnim, fn) {
 
 		var amount = to/currentSize;
-		imageX = middleX - (middleX - imageX)*amount;
-		imageY = middleY - (middleY - imageY)*amount;
+		imageX = middleX - (middleX - imageX) * amount;
+		imageY = middleY - (middleY - imageY) * amount;
 
 		currentSize = to;
-
-		var width = preload.width * to,
-			height = preload.height * to,
-			left = imageX - (width / 2),
-			top = imageY - (height / 2);
 		
-		var dur = options.animateResize ? noAnim ? 0 : options.resizeDuration : 0;
-		$(image).animate({width: width, height: height, top: top, left: left}, {queue:false, duration: dur, easing: options.resizeEasing, complete: chain});
+		// round values as some browsers don't like very small css values
+		var r = Math.round,
+			width = r(preload.width * to),
+			height = r(preload.height * to),
+			left = r(imageX - (width / 2)),
+			top = r(imageY - (height / 2));
+		
+		
+		var dur = noAnim ? 0 : options.resizeDuration;
+		$(image).animate({width: width, height: height, top: top, left: left}, {queue:false, duration: dur, easing: options.resizeEasing, complete: fn});
 		return false;
 	}
 
@@ -243,11 +246,7 @@
 
 	function scrollZoom(e, delta) {
 		$(zoomBtn).addClass("zoomed");
-		return zoomImage(delta);
-	}
-	
-	function zoomImage(amount) {
-		var to = currentSize + amount*(currentSize/10);
+		var to = currentSize + delta * currentSize / 10;
 		return resizeImage(to);
 	}
 
@@ -281,7 +280,7 @@
 
 		return false;
 	}
-})(jQuery);
+
 
 /*! Copyright (c) 2009 Brandon Aaron (http://brandonaaron.net)
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
@@ -294,7 +293,6 @@
  * Requires: 1.2.2+
  */
 
-(function($){
 var types = ['DOMMouseScroll', 'mousewheel'];
 
 $.event.special.mousewheel = {
@@ -341,7 +339,6 @@ function handler(event) {
 	return $.event.handle.apply(this, args);
 }
 
-})(jQuery);
 
 /*!
  * jqDnR - Minimalistic Drag'n'Resize for jQuery.
@@ -354,7 +351,7 @@ function handler(event) {
  * $Version: 2007.08.19 +r2
  */
 
-(function($){
+
 $.fn.jqDrag=function(c,h){return i(this,h,'d',c);};
 $.fn.jqResize=function(c,h){return i(this,h,'r',c);};
 $.jqDnR={dnr:{},e:0,
