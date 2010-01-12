@@ -58,17 +58,9 @@
 
 #pbCaption {
 	font-weight: bold;
-	margin-bottom: 20px
-}
-
-#pbCaptionBg {
-	background-color: #000;
-	position: relative;
-	display: block;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
+	padding: 4px;
+	background-color: #000;               /* Sets BG color for IE */
+	background-color: rgba(0, 0, 0, 0.7); /* IE ignores this */
 }
 
 #pbNav {
