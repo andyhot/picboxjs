@@ -28,7 +28,6 @@
 #pbImage, #pbBottomContainer {
 	position: fixed;
 	z-index: 9999;
-	overflow: hidden;
 }
 
 #pbImage {
@@ -52,15 +51,17 @@
 }
 
 #pbBottom {
-	width: 300px;
+	width: 400px;
 	margin: auto;
 }
 
 #pbCaption {
 	font-weight: bold;
 	padding: 4px;
-	background-color: #000;               /* Sets BG color for IE */
-	background-color: rgba(0, 0, 0, 0.7); /* IE ignores this */
+	background-color: #000;
+	background-color: rgba(0,0,0,0.7);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#B0000000, endColorstr=#B0000000);
+	zoom: 1;
 }
 
 #pbNav {
@@ -70,13 +71,13 @@
 	margin-top: 5px;
 }
 
-/* ie6 only */
+/* for ie6 only */
 #pbNav a:link, #pbNav a:visited {
 	color: #FFF;
 }
 /*          */
 
-#pbNav > * {
+#pbPrevBtn, #pbNextBtn, #pbZoomBtn {
 	display: inline-block;
 	width: 70px;
 	height: 65px;
@@ -85,28 +86,28 @@
 	background: url(navbtns.png) no-repeat;
 }
 
-#pbPrevLink {
+#pbPrevBtn {
 	background-position: -70px 0;
 	float: left;
 }
 
-#pbPrevLink.greyed {
+#pbPrevBtn.greyed {
 	background-position: 0 0;
 }
 
-#pbNextLink {
+#pbNextBtn {
 	background-position: -260px 0;
 	float: right;
 }
 
-#pbNextLink.greyed {
+#pbNextBtn.greyed {
 	background-position: -330px;
 }
 
 #pbZoomBtn {
 	width: 60px;
 	background-position: -140px 0;
-	margin: auto;
+	float: left;
 }
 
 #pbZoomBtn.zoomed {

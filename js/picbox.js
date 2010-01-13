@@ -1,4 +1,4 @@
-/*
+/*!
 	Picbox v2.0
 	(c) 2009 Ben Kay <http://bunnyfire.co.uk>
 
@@ -6,6 +6,7 @@
 	(c) 2007-2009 Christophe Beyls <http://www.digitalia.be>
 	MIT-style license.
 */
+
 (function($) {
 	
 	var win = $(window), options, images, activeImage = -1, activeURL, prevImage, nextImage, ie6 = ((window.XMLHttpRequest == undefined) && (ActiveXObject != undefined)), browserIsCrap, middleX, middleY, imageX, imageY, currentSize, initialSize, imageDrag, timer,
@@ -14,7 +15,7 @@
 	preload = {}, preloadPrev = new Image(), preloadNext = new Image(),
 	
 	// DOM elements
-	overlay, closeBtn, image, prevLink, nextLink, bottomContainer, caption, number,
+	overlay, closeBtn, image, prevBtn, nextBtn, bottomContainer, caption, number,
 	
 	// Effects
 	fxOverlay, fxResize;
@@ -37,9 +38,9 @@
 		bottom = $('<div id="pbBottom" />').appendTo(bottomContainer).append(
 			caption = $('<span id="pbCaption" />')[0],
 			$('<div id="pbNav" />').append(
-				prevLink = $('<a id="pbPrevLink" href="#">Prev</a>').click(previous)[0],
+				prevBtn = $('<a id="pbPrevBtn" href="#">Prev</a>').click(previous)[0],
 				zoomBtn  = $('<a id="pbZoomBtn" href="#">Full Size</a>').click(doubleClick)[0],
-				nextLink = $('<a id="pbNextLink" href="#">Next</a>').click(next)[0]
+				nextBtn = $('<a id="pbNextBtn" href="#">Next</a>').click(next)[0]
 			),
 			number = $('<div id="pbNumber" />')[0],
 			$('<div style="clear: both;" />')
@@ -48,7 +49,7 @@
 		browserIsCrap = ie6 || (overlay.currentStyle && (overlay.currentStyle.position != "fixed"));
 		if (browserIsCrap) {
 			$([overlay, closeBtn, image, bottomContainer]).css("position", "absolute");
-			$([prevLink, nextLink]).css({
+ 			$([prevBtn, nextBtn, zoomBtn]).css({
 				"background-image": "none",
 				"text-indent": 0
 			});
@@ -71,6 +72,7 @@
 			resizeEasing: "swing",			// swing uses the jQuery default easing
 			controlsFadeDelay: 2000,		// Time delay before controls fade when not moving the mouse (in milliseconds)
 			counterText: false,				// Counter text. Use {x} for current image and {y} for total e.g. Image {x} of {y}
+			hideFlash: true,				// Hides flash elements on the page when picbox is activated. NOTE: flash elements must have wmode parameter set to "opaque" or "transparent" if this is set to false
 			closeKeys: [27, 88, 67],		// Array of keycodes to close Picbox, default: Esc (27), 'x' (88), 'c' (67)
 			previousKeys: [37, 80],			// Array of keycodes to navigate to the previous image, default: Left arrow (37), 'p' (80)
 			nextKeys: [39, 78]			// Array of keycodes to navigate to the next image, default: Right arrow (39), 'n' (78)
@@ -131,19 +133,21 @@
 		if (browserIsCrap) {
 			middleX = middleX + scroll.x;
 			middleY = middleY + scroll.y;
-			$(overlay).css({left: scroll.x, top: scroll.y, width: size.x, height: size.y});
+			$(overlay).css({left: scroll.x, top: scroll.y, width: winsize.x, height: winsize.y});
 		}
 
 		$(image).css({top: middleY, left: middleX, width: '1px', height: '1px'});
 	}
 	
 	function setup(open) {
-		$.each(["object", ie6 ? "select" : "embed"], function(i, val) {
-			$(val).each(function() {
-				if (open) $(this).data("vis", this.style.visibility);
-				this.style.visibility = open ? "hidden" : $(this).data("vis");
+ 		if (options.hideFlash) {
+			$.each(["object", ie6 ? "select" : "embed"], function(i, val) {
+				$(val).each(function() {
+					if (open) $(this).data("vis", this.style.visibility);
+					this.style.visibility = open ? "hidden" : $(this).data("vis");
+				});
 			});
-		});
+		}
 
 		overlay.style.display = open ? "" : "none";
 
@@ -191,8 +195,8 @@
 
 			$(caption).html(images[activeImage][1] || "");
 			$(number).html((((images.length > 1) && options.counterText) || "").replace(/{x}/, activeImage + 1).replace(/{y}/, images.length));
-			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; $(prevLink).removeClass("greyed");}
-			if (nextImage >= 0) {preloadNext.src = images[nextImage][0]; $(nextLink).removeClass("greyed");}
+			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; $(prevBtn).removeClass("greyed");}
+			if (nextImage >= 0) {preloadNext.src = images[nextImage][0]; $(nextBtn).removeClass("greyed");}
 
 			$(bottomContainer).css("display", "");
 
@@ -208,7 +212,7 @@
 		resetImageCenter();
 
 		var mw = win.width(), mh = win.height(), size = 1;
-		if ((preload.width > mw) || (preload.height > mh)) size = Math.min(mw/preload.width, mh/preload.height);
+		if ((preload.width > mw) || (preload.height > mh)) size = Math.min(mw / preload.width, mh / preload.height);
 		currentSize = initialSize = size;
 
 		resizeImage(size, noAnim);
@@ -220,18 +224,17 @@
 	
 	function resizeImage(to, noAnim, fn) {
 
-		var amount = to/currentSize;
+		var amount = to / currentSize;
 		imageX = middleX - (middleX - imageX) * amount;
 		imageY = middleY - (middleY - imageY) * amount;
 
 		currentSize = to;
 		
-		// round values as some browsers don't like very small css values
-		var r = Math.round,
-			width = r(preload.width * to),
-			height = r(preload.height * to),
-			left = r(imageX - (width / 2)),
-			top = r(imageY - (height / 2));
+		var	width = preload.width * to,
+			height = preload.height * to,
+			// round these as some browsers don't like very small css values
+			left = imageX - (width / 2) >> 0,
+			top = imageY - (height / 2) >> 0;
 		
 		
 		var dur = noAnim ? 0 : options.resizeDuration;
@@ -253,11 +256,11 @@
 	function doubleClick() {
 		if (currentSize == initialSize && Math.abs((imageX - middleX) + (imageY - middleY)) < 2) {
 			$(zoomBtn).addClass("zoomed");
-			resizeImage(1);
+			return resizeImage(1);
 		} else {
 			$(zoomBtn).removeClass("zoomed");
 			resetImageCenter();
-			resizeImage(initialSize);
+			return resizeImage(initialSize);
 		}
 	}
 
@@ -265,7 +268,7 @@
 		preload.onload = function(){};
 		preload.src = preloadPrev.src = preloadNext.src = activeURL;
 		$(image).stop();
-		$([prevLink, nextLink]).addClass("greyed");
+		$([prevBtn, nextBtn]).addClass("greyed");
 		$(zoomBtn).removeClass("zoomed");
 	}
 
@@ -339,7 +342,6 @@ function handler(event) {
 	return $.event.handle.apply(this, args);
 }
 
-
 /*!
  * jqDnR - Minimalistic Drag'n'Resize for jQuery.
  * Slightly modified to allow for a callback function
@@ -372,4 +374,5 @@ i=function(e,h,k,c){return e.each(function(){h=(h)?$(h,e):e;
  });
 });},
 f=function(k){return parseInt(E.css(k))||false;};
+
 })(jQuery);
