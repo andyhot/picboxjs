@@ -140,8 +140,8 @@
 	function setup(open) {
 		$.each(["object", ie6 ? "select" : "embed"], function(i, val) {
 			$(val).each(function() {
-				if (open) this.data("vis", this.style.visibility);
-				this.style.visibility = open ? "hidden" : this.data("vis");
+				if (open) $(this).data("vis", this.style.visibility);
+				this.style.visibility = open ? "hidden" : $(this).data("vis");
 			});
 		});
 
