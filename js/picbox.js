@@ -1,21 +1,25 @@
 /*!
-	Picbox v2.0
-	(c) 2009 Ben Kay <http://bunnyfire.co.uk>
+	Picbox v2.1
+	(c) 2010 Ben Kay <http://bunnyfire.co.uk>
 
 	Based on code from Slimbox v1.7 - The ultimate lightweight Lightbox clone
 	(c) 2007-2009 Christophe Beyls <http://www.digitalia.be>
+	
+	Uses jQuery-mousewheel Version: 3.0.2
+	(c) 2009 Brandon Aaron <http://brandonaaron.net>
+	
 	MIT-style license.
 */
 
 (function($) {
 	
-	var win = $(window), options, images, activeImage = -1, activeURL, prevImage, nextImage, ie6 = ((window.XMLHttpRequest == undefined) && (ActiveXObject != undefined)), browserIsCrap, middleX, middleY, imageX, imageY, currentSize, initialSize, imageDrag, timer,
+	var win = $(window), options, images, activeImage = -1, activeURL, prevImage, nextImage, middleX, middleY, imageX, imageY, currentSize, initialSize, imageDrag, timer,
 	
 	// Preload images
 	preload = {}, preloadPrev = new Image(), preloadNext = new Image(),
 	
 	// DOM elements
-	overlay, closeBtn, image, prevBtn, nextBtn, bottomContainer, caption, number,
+	container, overlay, closeBtn, image, prevBtn, nextBtn, bottom, caption, number, moo,
 	
 	// Effects
 	fxOverlay, fxResize;
@@ -25,37 +29,26 @@
 	*/
 	
 	$(document).ready(function() {
-		$(document.body).append(
+		$(document.body).append(container = $('<div id="pbContainer" />').css("display", "none")[0])
+		$(container).append(
 			$([
-				overlay = $('<div id="pbOverlay" />').click(close).append(
+				overlay = $('<div id="pbOverlay" />').click(close).css("opacity", 0).append(
 					closeBtn = $('<div id="pbCloseBtn" />')[0]
 				)[0],
 				image = $('<img id="pbImage" />').dblclick(doubleClick)[0],
-				bottomContainer = $('<div id="pbBottomContainer" />')[0]
-			]).css("display", "none")
+				bottom = $('<div id="pbBottom" />').append([
+					caption = $('<div id="pbCaption" />')[0],
+					$('<div id="pbNav" />').append([
+						prevBtn = $('<a id="pbPrevBtn" href="#" />').click(previous)[0],
+						zoomBtn  = $('<a id="pbZoomBtn" href="#" />').click(doubleClick)[0],
+						nextBtn = $('<a id="pbNextBtn" href="#" />').click(next)[0]
+					])[0],
+					number = $('<div id="pbNumber" />')[0]
+				])[0]
+			])
 		);
 		
-		bottom = $('<div id="pbBottom" />').appendTo(bottomContainer).append(
-			caption = $('<span id="pbCaption" />')[0],
-			$('<div id="pbNav" />').append(
-				prevBtn = $('<a id="pbPrevBtn" href="#">Prev</a>').click(previous)[0],
-				zoomBtn  = $('<a id="pbZoomBtn" href="#">Full Size</a>').click(doubleClick)[0],
-				nextBtn = $('<a id="pbNextBtn" href="#">Next</a>').click(next)[0]
-			),
-			number = $('<div id="pbNumber" />')[0],
-			$('<div style="clear: both;" />')
-		);
-		
-		browserIsCrap = ie6 || (overlay.currentStyle && (overlay.currentStyle.position != "fixed"));
-		if (browserIsCrap) {
-			$([overlay, closeBtn, image, bottomContainer]).css("position", "absolute");
- 			$([prevBtn, nextBtn, zoomBtn]).css({
-				"background-image": "none",
-				"text-indent": 0
-			});
-		}
-		
-		$(image).jqDrag(function() {
+		$(image).makeDraggable(function() {
 			var i = $(image), pos = i.position();
 			imageX = (pos.left - win.scrollLeft()) + i.width() / 2;
 			imageY = (pos.top - win.scrollTop()) + i.height() / 2;
@@ -87,7 +80,7 @@
 		
 		position();
 		setup(1);
-		$(overlay).css("opacity", 0).fadeTo(options.overlayFadeDuration, options.overlayOpacity);
+		$(overlay).fadeTo(options.overlayFadeDuration, options.overlayOpacity);
 
 		images = _images;
 		options.loop = options.loop && (images.length > 1);
@@ -126,22 +119,15 @@
 	*/
 	
 	function position() {
-		var scroll = {x: win.scrollLeft(), y: win.scrollTop()}, winsize = {x: win.width(), y: win.height()};
-		middleX = winsize.x / 2;
-		middleY = winsize.y / 2;
-
-		if (browserIsCrap) {
-			middleX = middleX + scroll.x;
-			middleY = middleY + scroll.y;
-			$(overlay).css({left: scroll.x, top: scroll.y, width: winsize.x, height: winsize.y});
-		}
+		middleX = win.width() / 2;
+		middleY = win.height() / 2;
 
 		$(image).css({top: middleY, left: middleX, width: '1px', height: '1px'});
 	}
 	
 	function setup(open) {
  		if (options.hideFlash) {
-			$.each(["object", ie6 ? "select" : "embed"], function(i, val) {
+			$.each(["object", "embed"], function(i, val) {
 				$(val).each(function() {
 					if (open) $(this).data("vis", this.style.visibility);
 					this.style.visibility = open ? "hidden" : $(this).data("vis");
@@ -149,12 +135,12 @@
 			});
 		}
 
-		overlay.style.display = open ? "" : "none";
-
+		container.style.display = open ? "" : "none";
+		
 		var fn = open ? "bind" : "unbind";
-		$(document)[fn]("keydown", keyDown);
-		$(document)[fn]("mousewheel", scrollZoom);
-		$(document)[fn]("mousemove", mouseMove);
+		$()[fn]("keydown", keyDown);
+		$()[fn]("mousewheel", scrollZoom);
+		$()[fn]("mousemove", mouseMove);
 		
 	}
 	
@@ -198,7 +184,7 @@
 			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; $(prevBtn).removeClass("greyed");}
 			if (nextImage >= 0) {preloadNext.src = images[nextImage][0]; $(nextBtn).removeClass("greyed");}
 
-			$(bottomContainer).css("display", "");
+			$(bottom).css("display", "");
 
 			preload = new Image();
 			preload.onload = function(){showImage(noAnim);};
@@ -276,11 +262,38 @@
 		if (activeImage >= 0) {
 			stop();
 			activeImage = prevImage = nextImage = -1;
-			$(bottomContainer).hide();
-			resizeImage(0, false, function() {$(image).hide()});
-			$(overlay).stop().fadeOut(options.overlayFadeDuration, setup);
+			resizeImage(0, false, setup);
+			$(overlay).stop().fadeTo(options.overlayFadeDuration, 0);
 		}
 
+		return false;
+	}
+	
+	// Drag handler
+	
+	$.fn.makeDraggable = function(callback) {
+		return $.draggable(this, callback);
+	}
+
+	$.draggable = function(el, callback) {
+		var offset;
+		el.mousedown(function(e) {
+			var elPos = el.offset();
+			offset = {x: e.screenX - elPos.left, y: e.screenY - elPos.top};
+			$(document).mousemove(drag).mouseup(stop);
+			return false;
+		});
+		
+		function drag(e) {
+			el.css({left: e.screenX - offset.x, top: e.screenY - offset.y});
+			return false;
+		}
+		
+		function stop() {
+			$(document).unbind('mousemove', drag).unbind('mouseup');
+			callback&&callback()
+		}
+		
 		return false;
 	}
 
@@ -341,38 +354,5 @@ function handler(event) {
 
 	return $.event.handle.apply(this, args);
 }
-
-/*!
- * jqDnR - Minimalistic Drag'n'Resize for jQuery.
- * Slightly modified to allow for a callback function
- *
- * Copyright (c) 2007 Brice Burgess <bhb@iceburg.net>, http://www.iceburg.net
- * Licensed under the MIT License:
- * http://www.opensource.org/licenses/mit-license.php
- * 
- * $Version: 2007.08.19 +r2
- */
-
-
-$.fn.jqDrag=function(c,h){return i(this,h,'d',c);};
-$.fn.jqResize=function(c,h){return i(this,h,'r',c);};
-$.jqDnR={dnr:{},e:0,
-drag:function(v){
- if(M.k == 'd')E.css({left:M.X+v.pageX-M.pX,top:M.Y+v.pageY-M.pY});
- else E.css({width:Math.max(v.pageX-M.pX+M.W,0),height:Math.max(v.pageY-M.pY+M.H,0)});
-  return false;},
-stop:function(c){$().unbind('mousemove',J.drag).unbind('mouseup');c&&c();}
-};
-var J=$.jqDnR,M=J.dnr,E=J.e,
-i=function(e,h,k,c){return e.each(function(){h=(h)?$(h,e):e;
- h.bind('mousedown',{e:e,k:k},function(v){var d=v.data,p={};E=d.e;
- // attempt utilization of dimensions plugin to fix IE issues
- if(E.css('position') != 'relative'){try{E.position(p);}catch(e){}}
- M={X:p.left||f('left')||0,Y:p.top||f('top')||0,W:f('width')||E[0].scrollWidth||0,H:f('height')||E[0].scrollHeight||0,pX:v.pageX,pY:v.pageY,k:d.k,o:E.css('opacity')};
- $().mousemove($.jqDnR.drag).mouseup(function(){$.jqDnR.stop(c)});
- return false;
- });
-});},
-f=function(k){return parseInt(E.css(k))||false;};
 
 })(jQuery);
