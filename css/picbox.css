@@ -8,7 +8,7 @@
 	height: 100%;
 }
 
-#pbOverlay, #pbCloseBtn, #pbImage, #pbBottom {
+#pbContainer > * {
 	position: absolute;
 }
 
@@ -58,11 +58,11 @@
 #pbCaption {
 	font-weight: bold;
 	padding: 4px;
+	display: inline-block;
+	*display: inline; /* IE 7 */
 	background-color: rgba(0,0,0,0.7);
 	filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr=#B0000000, EndColorStr=#B0000000);
 	zoom: 1;
-	display: inline-block;
-	*display: inline; /* IE 7 */
 }
 
 #pbNav {
@@ -72,7 +72,7 @@
 	margin-top: 5px;
 }
 
-#pbPrevBtn, #pbNextBtn, #pbZoomBtn {
+#pbNav > * {
 	display: inline-block;
 	width: 70px;
 	height: 65px;
@@ -91,12 +91,12 @@
 }
 
 #pbNextBtn {
-	background-position: -260px 0;
+	background-position: -320px 0;
 	float: right;
 }
 
 #pbNextBtn.greyed {
-	background-position: -330px;
+	background-position: -390px;
 }
 
 #pbZoomBtn {
@@ -106,7 +106,7 @@
 }
 
 #pbZoomBtn.zoomed {
-	background-position: -200px 0;
+	background-position: -260px 0;
 }
 
 /* END PICBOX */
