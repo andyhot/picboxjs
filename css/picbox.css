@@ -1,15 +1,7 @@
 /* PICBOX */
-#pbContainer{
+#pbOverlay, #pbImage, #pbBottom, #pbCloseBtn {
 	position: fixed;
 	z-index: 9999;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 100%;
-}
-
-#pbContainer > * {
-	position: absolute;
 }
 
 #pbOverlay {
@@ -72,7 +64,7 @@
 	margin-top: 5px;
 }
 
-#pbNav > * {
+#pbPrevBtn, #pbNextBtn, #pbZoomBtn  {
 	display: inline-block;
 	width: 70px;
 	height: 65px;
@@ -86,7 +78,7 @@
 	float: left;
 }
 
-#pbPrevBtn.greyed {
+#pbPrevBtn.pbgreyed {
 	background-position: 0 0;
 }
 
@@ -95,7 +87,7 @@
 	float: right;
 }
 
-#pbNextBtn.greyed {
+#pbNextBtn.pbgreyed {
 	background-position: -390px;
 }
 
@@ -105,7 +97,11 @@
 	float: left;
 }
 
-#pbZoomBtn.zoomed {
+#pbZoomBtn.greyed { 
+	background-position: -200px 0;
+}
+
+#pbZoomBtn.pbzoomed {
 	background-position: -260px 0;
 }
 

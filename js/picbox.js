@@ -13,26 +13,28 @@
 
 (function($) {
 	
-	var win = $(window), options, images, activeImage = -1, activeURL, prevImage, nextImage, middleX, middleY, imageX, imageY, currentSize, initialSize, imageDrag, timer,
+	var win = $(window), options, images, activeImage = -1, activeURL, prevImage, nextImage, ie6 = ((window.XMLHttpRequest == undefined) && (ActiveXObject != undefined)), browserIsCrap, middleX, middleY, imageX, imageY, currentSize, initialSize, imageDrag, timer, fitsOnScreen,
 	
 	// Preload images
 	preload = {}, preloadPrev = new Image(), preloadNext = new Image(),
 	
 	// DOM elements
-	container, overlay, closeBtn, image, prevBtn, nextBtn, bottom, caption, number, moo,
+	overlay, closeBtn, image, prevBtn, nextBtn, bottom, caption, number,
 	
 	// Effects
-	fxOverlay, fxResize;
+	fxOverlay, fxResize,
+	
+	// CSS classes
+	zoomed = "pbzoomed", greyed = "pbgreyed";
 	
 	/*
 		Initialization
 	*/
 	
 	$(document).ready(function() {
-		$(document.body).append(container = $('<div id="pbContainer" />').css("display", "none")[0])
-		$(container).append(
+		$(document.body).append(
 			$([
-				overlay = $('<div id="pbOverlay" />').click(close).css("opacity", 0).append(
+				overlay = $('<div id="pbOverlay" />').click(close).append(
 					closeBtn = $('<div id="pbCloseBtn" />')[0]
 				)[0],
 				image = $('<img id="pbImage" />').dblclick(doubleClick)[0],
@@ -45,14 +47,19 @@
 					])[0],
 					number = $('<div id="pbNumber" />')[0]
 				])[0]
-			])
+			]).css("display", "none")
 		);
+		
+		browserIsCrap = ie6 || (overlay.currentStyle && (overlay.currentStyle.position != "fixed"));
+		if (browserIsCrap) {
+			$([overlay, closeBtn, image, bottom]).css("position", "absolute");
+		}
 		
 		$(image).makeDraggable(function() {
 			var i = $(image), pos = i.position();
 			imageX = (pos.left - win.scrollLeft()) + i.width() / 2;
 			imageY = (pos.top - win.scrollTop()) + i.height() / 2;
-			$(zoomBtn).addClass("zoomed");
+			$(zoomBtn).addClass(zoomed);
 		});
 	});
 	
@@ -80,7 +87,7 @@
 		
 		position();
 		setup(1);
-		$(overlay).fadeTo(options.overlayFadeDuration, options.overlayOpacity);
+		$(overlay).css("opacity", 0).fadeTo(options.overlayFadeDuration, options.overlayOpacity);
 
 		images = _images;
 		options.loop = options.loop && (images.length > 1);
@@ -119,8 +126,15 @@
 	*/
 	
 	function position() {
+		var scroll = {x: win.scrollLeft(), y: win.scrollTop()}
 		middleX = win.width() / 2;
 		middleY = win.height() / 2;
+		
+		if (browserIsCrap) {
+			middleX = middleX + scroll.x;
+			middleY = middleY + scroll.y;
+			$(overlay).css({left: scroll.x, top: scroll.y, width: win.width(), height: win.height()});
+		}
 
 		$(image).css({top: middleY, left: middleX, width: '1px', height: '1px'});
 	}
@@ -134,13 +148,13 @@
 				});
 			});
 		}
-
-		container.style.display = open ? "" : "none";
 		
+		overlay.style.display = "";
+
 		var fn = open ? "bind" : "unbind";
-		$()[fn]("keydown", keyDown);
-		$()[fn]("mousewheel", scrollZoom);
-		$()[fn]("mousemove", mouseMove);
+		$(document)[fn]("keydown", keyDown);
+		$(document)[fn]("mousewheel", scrollZoom);
+		$(document)[fn]("mousemove", mouseMove);
 		
 	}
 	
@@ -181,8 +195,8 @@
 
 			$(caption).html(images[activeImage][1] || "");
 			$(number).html((((images.length > 1) && options.counterText) || "").replace(/{x}/, activeImage + 1).replace(/{y}/, images.length));
-			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; $(prevBtn).removeClass("greyed");}
-			if (nextImage >= 0) {preloadNext.src = images[nextImage][0]; $(nextBtn).removeClass("greyed");}
+			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; $(prevBtn).removeClass(greyed);}
+			if (nextImage >= 0) {preloadNext.src = images[nextImage][0]; $(nextBtn).removeClass(greyed);}
 
 			$(bottom).css("display", "");
 
@@ -198,7 +212,15 @@
 		resetImageCenter();
 
 		var mw = win.width(), mh = win.height(), size = 1;
-		if ((preload.width > mw) || (preload.height > mh)) size = Math.min(mw / preload.width, mh / preload.height);
+		if ((preload.width > mw) || (preload.height > mh)) {
+			size = Math.min(mw / preload.width, mh / preload.height);
+			$(zoomBtn).removeClass(greyed);
+			fitsOnScreen = false;
+		} else {
+			$(zoomBtn).addClass(greyed);
+			fitsOnScreen = true;
+		}
+			
 		currentSize = initialSize = size;
 
 		resizeImage(size, noAnim);
@@ -208,7 +230,7 @@
 		overlay.className = "";
 	}
 	
-	function resizeImage(to, noAnim, fn) {
+	function resizeImage(to, noAnim) {
 
 		var amount = to / currentSize;
 		imageX = middleX - (middleX - imageX) * amount;
@@ -220,10 +242,9 @@
 			height = preload.height * to,
 			// round these as some browsers don't like very small css values
 			left = imageX - (width / 2) >> 0,
-			top = imageY - (height / 2) >> 0;
+			top = imageY - (height / 2) >> 0,
 		
-		
-		var dur = noAnim ? 0 : options.resizeDuration;
+		dur = noAnim ? 0 : options.resizeDuration, fn = (0 == to) ? $(image).hide:function(){};
 		$(image).animate({width: width, height: height, top: top, left: left}, {queue:false, duration: dur, easing: options.resizeEasing, complete: fn});
 		return false;
 	}
@@ -234,17 +255,17 @@
 	}
 
 	function scrollZoom(e, delta) {
-		$(zoomBtn).addClass("zoomed");
+		$(zoomBtn).addClass(zoomed);
 		var to = currentSize + delta * currentSize / 10;
 		return resizeImage(to);
 	}
 
 	function doubleClick() {
-		if (currentSize == initialSize && Math.abs((imageX - middleX) + (imageY - middleY)) < 2) {
-			$(zoomBtn).addClass("zoomed");
+		if (currentSize == initialSize && imageX == middleX && !fitsOnScreen) { 
+				$(zoomBtn).addClass(zoomed);
 			return resizeImage(1);
 		} else {
-			$(zoomBtn).removeClass("zoomed");
+			$(zoomBtn).removeClass(zoomed);
 			resetImageCenter();
 			return resizeImage(initialSize);
 		}
@@ -254,16 +275,18 @@
 		preload.onload = function(){};
 		preload.src = preloadPrev.src = preloadNext.src = activeURL;
 		$(image).stop();
-		$([prevBtn, nextBtn]).addClass("greyed");
-		$(zoomBtn).removeClass("zoomed");
+		$([prevBtn, nextBtn]).addClass(greyed);
+		$(zoomBtn).removeClass(zoomed);
 	}
 
 	function close() {
 		if (activeImage >= 0) {
 			stop();
 			activeImage = prevImage = nextImage = -1;
-			resizeImage(0, false, setup);
-			$(overlay).stop().fadeTo(options.overlayFadeDuration, 0);
+			resizeImage(0);
+			setup();
+			$(bottom).hide();
+			$(overlay).stop().fadeOut();
 		}
 
 		return false;
@@ -276,25 +299,33 @@
 	}
 
 	$.draggable = function(el, callback) {
-		var offset;
+		var offset, mouse, moved;
 		el.mousedown(function(e) {
 			var elPos = el.offset();
-			offset = {x: e.screenX - elPos.left, y: e.screenY - elPos.top};
+			moved = false;
+			mouse = {x: e.screenX, y: e.screenY};
+			offset = {x: mouse.x - elPos.left, y: mouse.y - elPos.top};
 			$(document).mousemove(drag).mouseup(stop);
 			return false;
 		});
 		
 		function drag(e) {
-			el.css({left: e.screenX - offset.x, top: e.screenY - offset.y});
+			var x = e.screenX, y = e.screenY;
+			if (moved) {
+				el.css({left: x - offset.x, top: y - offset.y});
+			} else {
+				if (Math.abs(x - mouse.x) > 6 || Math.abs(y - mouse.Y) > 6)
+					moved = true
+			}
 			return false;
 		}
 		
 		function stop() {
 			$(document).unbind('mousemove', drag).unbind('mouseup');
-			callback&&callback()
+			moved&&callback&&callback()
 		}
 		
-		return false;
+		return el;
 	}
 
 
