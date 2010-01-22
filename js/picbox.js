@@ -65,7 +65,7 @@
 	
 	$.picbox = function(_images, startImage, _options) {
 		options = $.extend({
-			loop: false,				// Allows to navigate between first and last images
+			loop: false,					// Allows to navigate between first and last images
 			overlayOpacity: 0.8,			// 1 is opaque, 0 is completely transparent (change the color in the CSS file)
 			overlayFadeDuration: 200,		// Duration of the overlay fade-in and fade-out animations (in milliseconds)
 			resizeDuration: 300,			// Duration of each of the image resize animations (in milliseconds)
@@ -75,7 +75,7 @@
 			hideFlash: true,				// Hides flash elements on the page when picbox is activated. NOTE: flash elements must have wmode parameter set to "opaque" or "transparent" if this is set to false
 			closeKeys: [27, 88, 67],		// Array of keycodes to close Picbox, default: Esc (27), 'x' (88), 'c' (67)
 			previousKeys: [37, 80],			// Array of keycodes to navigate to the previous image, default: Left arrow (37), 'p' (80)
-			nextKeys: [39, 78]			// Array of keycodes to navigate to the next image, default: Right arrow (39), 'n' (78)
+			nextKeys: [39, 78]				// Array of keycodes to navigate to the next image, default: Right arrow (39), 'n' (78)
 		}, _options || {});
 
 
@@ -141,7 +141,7 @@
 	
 	function setup(open) {
  		if (options.hideFlash) {
-			$.each(["object", ie6 ? "select" : "embed"], function(i, val) {
+			$.each(["object", "embed"], function(i, val) {
 				$(val).each(function() {
 					// jQuery 1.4 doesn't allow .data() on object tags
 					if (open) this._picbox = this.style.visibility;
@@ -238,7 +238,7 @@
 		imageY = middleY - (middleY - imageY) * amount;
 
 		currentSize = to;
-		
+
 		var	width = preload.width * to,
 			height = preload.height * to,
 			// round these as some browsers don't like very small css values
@@ -262,8 +262,8 @@
 	}
 
 	function doubleClick() {
-		if (currentSize == initialSize && imageX == middleX && middleY == middleY && !fitsOnScreen) { 
-				$(zoomBtn).addClass(zoomed);
+		if (currentSize == initialSize && imageX == middleX && imageY == middleY && !fitsOnScreen) { 
+			$(zoomBtn).addClass(zoomed);
 			return resizeImage(1);
 		} else {
 			$(zoomBtn).removeClass(zoomed);
