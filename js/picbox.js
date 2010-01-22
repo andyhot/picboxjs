@@ -1,6 +1,6 @@
 /*!
-	Picbox v1.0.1
-	(c) 2009 Ben Kay <http://bunnyfire.co.uk>
+	Picbox v1.1
+	(c) 2010 Ben Kay <http://bunnyfire.co.uk>
 
 	Based on code from Slimbox v1.7 - The ultimate lightweight Lightbox clone
 	(c) 2007-2009 Christophe Beyls <http://www.digitalia.be>
@@ -10,16 +10,19 @@
 Picbox = (function($) {
 
 	// Global variables, accessible to Picbox only
-	var win = window, ie6 = Browser.Engine.trident4, options, images, activeImage = -1, activeURL,  prevImage, nextImage, browserIsCrap, middleX, middleY, imageX, imageY, currentSize, initialSize, imageDrag,
+	var win = window, ie6 = Browser.Engine.trident4, browserIsCrap, options, images, activeImage = -1, activeURL,  prevImage, nextImage, middleX, middleY, imageX, imageY, currentSize, initialSize, imageDrag, timer, fitsOnScreen,
 
 	// Preload images
 	preload = {}, preloadPrev = new Image(), preloadNext = new Image(),
 
 	// DOM elements
-	overlay, closeBtn, image, prevLink, nextLink, bottomContainer, caption, number,
+	overlay, closeBtn, image, prevBtn, nextBtn, bottom, caption, number,
 
 	// Effects
-	fxOverlay, fxResize;
+	fxOverlay, fxResize,
+
+	// CSS classes
+	zoomed = "pbzoomed", greyed = "pbgreyed";
 
 	/*
 		Initialization
@@ -32,35 +35,34 @@ Picbox = (function($) {
 				overlay = new Element("div", {id: "pbOverlay", events: {click: close}}).adopt(
 					closeBtn = new Element("div", {id: "pbCloseBtn"})
 				),
-				image = new Element("img", {id: "pbImage"}),
-				bottomContainer = new Element("div", {id: "pbBottomContainer"})
+				image = new Element("img", {id: "pbImage", events: {dblclick: doubleClick}}),
+				bottom = new Element("div", {id: "pbBottom"}).adopt(
+					caption = new Element("div", {id: "pbCaption"}),
+					number = new Element("div", {id: "pbNumber"}),
+					new Element("div", {id: "pbNav"}).adopt(
+						prevBtn = new Element("a", {id: "pbPrevBtn", href: "#", events: {click: previous}}),
+						zoomBtn = new Element("a", {id: "pbZoomBtn", href: "#", events: {click: doubleClick}}),
+						nextBtn = new Element("a", {id: "pbNextBtn", href: "#", events: {click: next}})
+					)
+				)
 			).setStyle("display", "none")
 		);
 
-		image.addEvent('dblclick', doubleClick);
-
-		image.ondragstart = function() { // http://justgiving.com/timespentfigurigoutwhatthehellieisdoing
-			return false;
-		}
-
-		bottom = new Element("div", {id: "pbBottom"}).injectInside(bottomContainer).adopt(
-			caption = new Element("div", {id: "pbCaption"}),
-			number = new Element("div", {id: "pbNumber"}),
-			new Element("div", {id: "pbArrows"}).adopt(
-				prevLink = new Element("a", {id: "pbPrevLink", href: "#", events: {click: previous}, html: "Previous"}),
-				nextLink = new Element("a", {id: "pbNextLink", href: "#", events: {click: next}, html: "Next"})
-			),
-			new Element("div", {styles: {clear: "both"}})
-		);
 		browserIsCrap = ie6 || (overlay.currentStyle && (overlay.currentStyle.position != "fixed"));
 		if (browserIsCrap) {
-			$$(overlay, closeBtn, image, bottomContainer).setStyle("position", "absolute");
-			$$(prevLink, nextLink).setStyles({
-				"background-image": "none",
-				"text-indent": 0
-			});
+			$$(overlay, closeBtn, image, bottom).setStyle("position", "absolute");
 		}
-	});
+		
+ 		image.tinyDrag(function(){
+			// Getting position relative to overlay as it
+			// returns posn relative to top of document in ie7/8 otherwise
+			var relative = Browser.Engine.trident5 ? overlay : undefined;
+			var pos = image.getPosition(relative);
+			imageX = pos.x + image.offsetWidth/2;
+			imageY = pos.y + image.offsetHeight/2;
+			$(zoomBtn).addClass(zoomed);
+		});
+ 	});
 
 
 	/*
@@ -70,7 +72,7 @@ Picbox = (function($) {
 	function position() {
 		var scroll = win.getScroll(), size = win.getSize();
 		middleX = win.getWidth() / 2;
-		middleY = win.getHeight() / 2.2;
+		middleY = win.getHeight() / 2;
 
 		if (browserIsCrap) {
 			middleX = middleX + scroll.x;
@@ -82,18 +84,21 @@ Picbox = (function($) {
 	}
 
 	function setup(open) {
-		["object", ie6 ? "select" : "embed"].forEach(function(tag) {
-			Array.forEach(document.getElementsByTagName(tag), function(el) {
-				if (open) el._picbox = el.style.visibility;
-				el.style.visibility = open ? "hidden" : el._picbox;
+		if (options.hideFlash) {
+			["object", "embed"].forEach(function(tag) {
+				Array.forEach(document.getElementsByTagName(tag), function(el) {
+					if (open) el._picbox = el.style.visibility;
+					el.style.visibility = open ? "hidden" : el._picbox;
+				});
 			});
-		});
-
-		overlay.style.display = open ? "" : "none";
+		}
+		
+		overlay.style.display = "";
 
 		var fn = open ? "addEvent" : "removeEvent";
 		document[fn]("keydown", keyDown);
-		document[fn]('mousewheel', scrollZoom);
+		document[fn]("mousewheel", scrollZoom);
+		document[fn]("mousemove", mouseMove);
 	}
 
 	function keyDown(event) {
@@ -103,6 +108,12 @@ Picbox = (function($) {
 			: options.nextKeys.contains(code) ? next()
 			: options.previousKeys.contains(code) ? previous()
 			: false;
+	}
+	
+	function mouseMove() {
+		clearTimeout(timer);
+		bottom.fade("in");
+		timer = setTimeout(function(){bottom.fade("out")}, options.controlsFadeDelay);
 	}
 
 	function previous() {
@@ -127,10 +138,10 @@ Picbox = (function($) {
 
 			caption.set("html", images[activeImage][1] || "");
 			number.set("html", (((images.length > 1) && options.counterText) || "").replace(/{x}/, activeImage + 1).replace(/{y}/, images.length));
-			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; prevLink.style.visibility = "";}
-			if (nextImage >= 0) {preloadNext.src = images[nextImage][0]; nextLink.style.visibility = "";}
+			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; prevBtn.removeClass(greyed);}
+			if (nextImage >= 0) {preloadNext.src = images[nextImage][0]; nextBtn.removeClass(greyed);}
 
-			bottomContainer.setStyle("display", "");
+			bottom.setStyle("display", "");
 
 			preload = new Image();
 			preload.onload = function(){showImage(noAnim);};
@@ -143,8 +154,16 @@ Picbox = (function($) {
 	function showImage(noAnim) {
 		resetImageCenter();
 
-		var mw = win.getWidth()/1.3, mh = win.getHeight()/1.3, size = 1;
-		if ((preload.width > mw) || (preload.height > mh)) size = Math.min(mw/preload.width, mh/preload.height);
+		var mw = win.getWidth(), mh = win.getHeight(), size = 1;
+		if ((preload.width > mw) || (preload.height > mh)) {
+			size = Math.min(mw/preload.width, mh/preload.height);
+			zoomBtn.removeClass(greyed);
+			fitsOnScreen = false;
+		} else {
+			zoomBtn.addClass(greyed);
+			fitsOnScreen = true;
+		}
+		
 		currentSize = initialSize = size;
 
 		resizeImage(size, noAnim);
@@ -154,11 +173,11 @@ Picbox = (function($) {
 		overlay.className = "";
 	}
 
-	function resizeImage(to, noAnim, chain) {
+	function resizeImage(to, noAnim, c) {
 
-		var amount = to/currentSize;
-		imageX = middleX - (middleX - imageX)*amount;
-		imageY = middleY - (middleY - imageY)*amount;
+		var amount = to / currentSize;
+		imageX = middleX - (middleX - imageX) * amount;
+		imageY = middleY - (middleY - imageY) * amount;
 
 		currentSize = to;
 
@@ -167,8 +186,9 @@ Picbox = (function($) {
 			left = imageX - (width / 2),
 			top = imageY - (height / 2);
 
-		var fn = options.animateResize ? noAnim ? "set" : "start" : "set";
+		var fn = noAnim ? "set" : "start", chain = (0 == to) ? function(){image.setStyle("display", "none")}:$empty;
 		fxResize[fn]({width: width, height: height, top: top, left: left}).chain(chain);
+		
 		return false;
 	}
 
@@ -178,20 +198,18 @@ Picbox = (function($) {
 	}
 
 	function scrollZoom(e) {
-		return zoomImage(e.wheel);
-	}
-
-	function zoomImage(amount) {
-		var to = currentSize + amount*(currentSize/10);
+		var to = currentSize + e.wheel * (currentSize / 10);
 		return resizeImage(to);
 	}
 
 	function doubleClick() {
-		if (currentSize == initialSize && imageX == middleX && middleY == middleY) {
-			resizeImage(1);
+		if (currentSize == initialSize && Math.abs(imageX - middleX + imageY - middleY) < 2 && !fitsOnScreen) {
+			zoomBtn.addClass(zoomed);
+			return resizeImage(1);
 		} else {
+			zoomBtn.removeClass(zoomed);
 			resetImageCenter();
-			resizeImage(initialSize);
+			return resizeImage(initialSize);
 		}
 	}
 
@@ -199,15 +217,18 @@ Picbox = (function($) {
 		preload.onload = $empty;
 		preload.src = preloadPrev.src = preloadNext.src = activeURL;
 		fxResize.cancel();
-		$$(prevLink, nextLink).setStyle("visibility", "hidden");
+		$$(prevBtn, nextBtn).addClass(greyed);
+		zoomBtn.removeClass(zoomed);
 	}
 
 	function close() {
 		if (activeImage >= 0) {
 			stop();
 			activeImage = prevImage = nextImage = -1;
-			resizeImage(0, false, function() {$$(image, bottomContainer).setStyle("display", "none");});
-			fxOverlay.cancel().chain(setup).start(0);
+			resizeImage(0);
+			setup();
+			bottom.setStyle("display", "none");
+			fxOverlay.cancel().chain(function(){overlay.setStyle("display", "none");}).start(0);
 		}
 
 		return false;
@@ -260,34 +281,23 @@ Picbox = (function($) {
 	return {
 		open: function(_images, startImage, _options) {
 			options = $extend({
-				loop: false,				// Allows to navigate between first and last images
+				loop: false,					// Allows to navigate between first and last images
 				overlayOpacity: 0.8,			// 1 is opaque, 0 is completely transparent (change the color in the CSS file)
-				overlayFadeDuration: 400,		// Duration of the overlay fade-in and fade-out animations (in milliseconds)
-				animateResize: true,			// Whether to animate image resizes
+				overlayFadeDuration: 200,		// Duration of the overlay fade-in and fade-out animations (in milliseconds)
 				resizeDuration: 300,			// Duration of each of the image resize animations (in milliseconds)
-				resizeTransition: Fx.Transitions.Sine.easeOut,		// false uses the mootools default transition)
-				counterText: "Image {x} of {y}",	// Translate or change as you wish, or set it to false to disable counter text for image groups
+				resizeEasing: Fx.Transitions.Sine.easeOut,		// false uses the mootools default transition)
+				controlsFadeDelay: 2000,		// Time delay before controls fade when not moving the mouse (in milliseconds)
+				counterText: false,				// Counter text. Use {x} for current image and {y} for total e.g. Image {x} of {y}
+				hideFlash: true,				// Hides flash elements on the page when picbox is activated. NOTE: flash elements must have wmode parameter set to "opaque" or "transparent" if this is set to false
 				closeKeys: [27, 88, 67],		// Array of keycodes to close Picbox, default: Esc (27), 'x' (88), 'c' (67)
 				previousKeys: [37, 80],			// Array of keycodes to navigate to the previous image, default: Left arrow (37), 'p' (80)
-				nextKeys: [39, 78]			// Array of keycodes to navigate to the next image, default: Right arrow (39), 'n' (78)
+				nextKeys: [39, 78]				// Array of keycodes to navigate to the next image, default: Right arrow (39), 'n' (78)
 			}, _options || {});
 
 			// Setup effects
 			fxOverlay = new Fx.Tween(overlay, {property: "opacity", duration: options.overlayFadeDuration});
 			fxResize = new Fx.Morph(image, $extend({duration: options.resizeDuration, link: "cancel"}, options.resizeTransition ? {transition: options.resizeTransition} : {}));
-
-			imageDrag = new Drag(image, {
-				snap: 0,
-				onComplete: function(){
-				// Getting position relative to overlay as it
-				// returns posn relative to top of document in ie7/8 otherwise
-				var relative = Browser.Engine.trident5 ? overlay : undefined;
-				var pos = image.getPosition(relative);
-				imageX = pos.x + image.offsetWidth/2;
-				imageY = pos.y + image.offsetHeight/2;
-				}
-			}).attach();
-
+			
 			// The function is called for a single image, with URL and Title as first two arguments
 			if (typeof _images == "string") {
 				_images = [[_images, startImage]];
@@ -303,5 +313,42 @@ Picbox = (function($) {
 			return changeImage(startImage);
 		}
 	};
+	
+})(document.id);
 
+(function($) {
+	// Drag handler
+
+	Element.implement({
+		
+		tinyDrag: function(callback) {
+			var offset, mouse, moved, target = this;
+			this.addEvent("mousedown", function(e) {
+				var elPos = this.getPosition();
+				moved = false;
+				mouse = {x: e.page.x, y: e.page.y};
+				offset = {x: mouse.x - elPos.x, y: mouse.y - elPos.y};
+				document.addEvent("mousemove", drag).addEvent("mouseup",stop);
+				return false;
+			});
+			
+			function drag(e) {
+				var x = e.page.x, y = e.page.y;
+				if (moved) {
+					target.setStyles({left: x - offset.x, top: y - offset.y});
+				} else {
+					if (Math.abs(x - mouse.x) > 6 || Math.abs(y - mouse.y) > 6)
+						moved = true
+				}
+				return false;
+			}
+			
+			function stop() {
+				$(document).removeEvent("mousemove", drag).removeEvent("mouseup");
+				moved&&callback&&callback()
+			}
+			
+			return this;
+		}
+	});
 })(document.id);
