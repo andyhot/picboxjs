@@ -55,7 +55,7 @@
 			$([overlay, closeBtn, image, bottom]).css("position", "absolute");
 		}
 		
-		$(image).makeDraggable(function() {
+		$(image).tinyDrag(function() {
 			var i = $(image), pos = i.position();
 			imageX = (pos.left - win.scrollLeft()) + i.width() / 2;
 			imageY = (pos.top - win.scrollTop()) + i.height() / 2;
@@ -85,9 +85,9 @@
 			startImage = 0;
 		}
 		
+		$(overlay).css("opacity", 0).fadeTo(options.overlayFadeDuration, options.overlayOpacity);
 		position();
 		setup(1);
-		$(overlay).css("opacity", 0).fadeTo(options.overlayFadeDuration, options.overlayOpacity);
 
 		images = _images;
 		options.loop = options.loop && (images.length > 1);
@@ -141,10 +141,11 @@
 	
 	function setup(open) {
  		if (options.hideFlash) {
-			$.each(["object", "embed"], function(i, val) {
+			$.each(["object", ie6 ? "select" : "embed"], function(i, val) {
 				$(val).each(function() {
-					if (open) $(this).data("vis", this.style.visibility);
-					this.style.visibility = open ? "hidden" : $(this).data("vis");
+					// jQuery 1.4 doesn't allow .data() on object tags
+					if (open) this._picbox = this.style.visibility;
+					this.style.visibility = open ? "hidden" : this._picbox;
 				});
 			});
 		}
@@ -261,7 +262,7 @@
 	}
 
 	function doubleClick() {
-		if (currentSize == initialSize && imageX == middleX && !fitsOnScreen) { 
+		if (currentSize == initialSize && imageX == middleX && middleY == middleY && !fitsOnScreen) { 
 				$(zoomBtn).addClass(zoomed);
 			return resizeImage(1);
 		} else {
@@ -294,23 +295,23 @@
 	
 	// Drag handler
 	
-	$.fn.makeDraggable = function(callback) {
-		return $.draggable(this, callback);
+	$.fn.tinyDrag = function(callback) {
+		return $.tinyDrag(this, callback);
 	}
 
-	$.draggable = function(el, callback) {
+	$.tinyDrag = function(el, callback) {
 		var offset, mouse, moved;
 		el.mousedown(function(e) {
 			var elPos = el.offset();
 			moved = false;
-			mouse = {x: e.screenX, y: e.screenY};
+			mouse = {x: e.pageX, y: e.pageY};
 			offset = {x: mouse.x - elPos.left, y: mouse.y - elPos.top};
 			$(document).mousemove(drag).mouseup(stop);
 			return false;
 		});
 		
 		function drag(e) {
-			var x = e.screenX, y = e.screenY;
+			var x = e.pageX, y = e.pageY;
 			if (moved) {
 				el.css({left: x - offset.x, top: y - offset.y});
 			} else {
