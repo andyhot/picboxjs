@@ -287,7 +287,7 @@
 			activeImage = prevImage = nextImage = -1;
 			resizeImage(0);
 			setup();
-			$(bottom).hide();
+			$(bottom).stop().hide();
 			$(overlay).stop().fadeOut();
 		}
 
