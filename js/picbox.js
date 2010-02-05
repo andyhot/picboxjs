@@ -315,7 +315,7 @@
 			if (moved) {
 				el.css({left: x - offset.x, top: y - offset.y});
 			} else {
-				if (Math.abs(x - mouse.x) > 6 || Math.abs(y - mouse.Y) > 6)
+				if (Math.abs(x - mouse.x) > 6 || Math.abs(y - mouse.y) > 6)
 					moved = true
 			}
 			return false;
