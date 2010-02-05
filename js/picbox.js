@@ -86,6 +86,7 @@
 		}
 		
 		$(overlay).css("opacity", 0).fadeTo(options.overlayFadeDuration, options.overlayOpacity);
+		$(bottom).css("display", "");
 		position();
 		setup(1);
 
@@ -199,7 +200,7 @@
 			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; $(prevBtn).removeClass(greyed);}
 			if (nextImage >= 0) {preloadNext.src = images[nextImage][0]; $(nextBtn).removeClass(greyed);}
 
-			$(bottom).css("display", "");
+			
 
 			preload = new Image();
 			preload.onload = function(){showImage(noAnim);};
