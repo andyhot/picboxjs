@@ -75,7 +75,8 @@
 			hideFlash: true,				// Hides flash elements on the page when picbox is activated. NOTE: flash elements must have wmode parameter set to "opaque" or "transparent" if this is set to false
 			closeKeys: [27, 88, 67],		// Array of keycodes to close Picbox, default: Esc (27), 'x' (88), 'c' (67)
 			previousKeys: [37, 80],			// Array of keycodes to navigate to the previous image, default: Left arrow (37), 'p' (80)
-			nextKeys: [39, 78]				// Array of keycodes to navigate to the next image, default: Right arrow (39), 'n' (78)
+			nextKeys: [39, 78],				// Array of keycodes to navigate to the next image, default: Right arrow (39), 'n' (78)
+			margins: 0						// Margin between the image and the sides of the window (in pixels)
 		}, _options || {});
 
 
@@ -219,7 +220,7 @@
 	function showImage(noAnim) {
 		resetImageCenter();
 
-		var mw = win.width(), mh = win.height(), size = 1;
+		var mw = win.width() - options.margins, mh = win.height() - options.margins, size = 1;
 		if ((preload.width > mw) || (preload.height > mh)) {
 			size = Math.min(mw / preload.width, mh / preload.height);
 			$(zoomBtn).removeClass(greyed);
