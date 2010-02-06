@@ -337,7 +337,7 @@ Picbox = (function($) {
 				if (moved) {
 					target.setStyles({left: x - offset.x, top: y - offset.y});
 				} else {
-					if (Math.abs(x - mouse.x) > 6 || Math.abs(y - mouse.y) > 6)
+					if (Math.abs(x - mouse.x) > 1 || Math.abs(y - mouse.y) > 1)
 						moved = true
 				}
 				return false;
