@@ -307,12 +307,12 @@
 	}
 
 	$.tinyDrag = function(el, callback) {
-		var offset, mouse, moved;
+		var mouseStart, elStart, moved;
 		el.mousedown(function(e) {
 			var elPos = el.offset();
 			moved = false;
-			mouse = {x: e.pageX, y: e.pageY};
-			offset = {x: mouse.x - elPos.left, y: mouse.y - elPos.top};
+			mouseStart = {x: e.pageX, y: e.pageY};
+			elStart = {x: parseInt(el.css("left")), y: parseInt(el.css("top"))}
 			$(document).mousemove(drag).mouseup(stop);
 			return false;
 		});
@@ -320,16 +320,16 @@
 		function drag(e) {
 			var x = e.pageX, y = e.pageY;
 			if (moved) {
-				el.css({left: x - offset.x, top: y - offset.y});
+				el.css({left: elStart.x + (x - mouseStart.x), top: elStart.y + (y - mouseStart.y)});
 			} else {
-				if (Math.abs(x - mouse.x) > 6 || Math.abs(y - mouse.y) > 6)
+				if (Math.abs(x - mouseStart.x) > 6 || Math.abs(y - mouseStart.y) > 6)
 					moved = true
 			}
 			return false;
 		}
 		
 		function stop() {
-			$(document).unbind('mousemove', drag).unbind('mouseup');
+			$(document).unbind("mousemove", drag).unbind("mouseup");
 			moved&&callback&&callback()
 		}
 		
