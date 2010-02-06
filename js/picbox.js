@@ -176,7 +176,7 @@
 	}
 	
 	function preventFade(over) {
-		var fn = over == 1 ? "unbind" : "bind";
+		var fn = 1 == over ? "unbind" : "bind";
 		$(document)[fn]("mousemove", mouseMove);
 		clearTimeout(timer);
 	}
