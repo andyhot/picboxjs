@@ -322,7 +322,7 @@
 			if (moved) {
 				el.css({left: elStart.x + (x - mouseStart.x), top: elStart.y + (y - mouseStart.y)});
 			} else {
-				if (Math.abs(x - mouseStart.x) > 6 || Math.abs(y - mouseStart.y) > 6)
+				if (Math.abs(x - mouseStart.x) > 1 || Math.abs(y - mouseStart.y) > 1)
 					moved = true
 			}
 			return false;
