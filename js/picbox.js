@@ -252,8 +252,9 @@
 			left = imageX - (width / 2) >> 0,
 			top = imageY - (height / 2) >> 0,
 		
-		dur = noAnim ? 0 : options.resizeDuration, fn = (0 == to) ? $(image).hide:function(){};
+		dur = noAnim ? 0 : options.resizeDuration, fn = (0 == to) ? function(){$(image).hide()}:function(){};
 		$(image).animate({width: width, height: height, top: top, left: left}, {queue:false, duration: dur, easing: options.resizeEasing, complete: fn});
+		
 		return false;
 	}
 
