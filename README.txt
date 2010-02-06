@@ -1,4 +1,4 @@
-PICBOX V2.1 README
+PICBOX V2.1.1 README
 ===================
 (c) Ben Kay 2010
 
