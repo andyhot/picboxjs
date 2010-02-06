@@ -36,7 +36,7 @@ Picbox = (function($) {
 					closeBtn = new Element("div", {id: "pbCloseBtn"})
 				),
 				image = new Element("img", {id: "pbImage", events: {dblclick: doubleClick}}),
-				bottom = new Element("div", {id: "pbBottom"}).adopt(
+				bottom = new Element("div", {id: "pbBottom", events: {mouseover: function(){preventFade(1);}, mouseout: preventFade}}).adopt(
 					caption = new Element("div", {id: "pbCaption"}),
 					number = new Element("div", {id: "pbNumber"}),
 					new Element("div", {id: "pbNav"}).adopt(
@@ -114,6 +114,12 @@ Picbox = (function($) {
 		clearTimeout(timer);
 		bottom.fade("in");
 		timer = setTimeout(function(){bottom.fade("out")}, options.controlsFadeDelay);
+	}
+	
+	function preventFade(over) {
+		var fn = 1 == over ? "removeEvent" : "addEvent";
+		document[fn]("mousemove", mouseMove);
+		clearTimeout(timer);
 	}
 
 	function previous() {
@@ -329,7 +335,7 @@ Picbox = (function($) {
 				moved = false;
 				mouse = {x: e.page.x, y: e.page.y};
 				offset = {x: mouse.x - elPos.x, y: mouse.y - elPos.y};
-				document.addEvent("mousemove", drag).addEvent("mouseup",stop);
+				document.addEvent("mousemove", drag).addEvent("mouseup", stop);
 				return false;
 			});
 			
