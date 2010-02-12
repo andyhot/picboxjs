@@ -46,7 +46,7 @@
 						nextBtn = $('<a id="pbNextBtn" href="#" />').click(next)[0]
 					])[0],
 					number = $('<div id="pbNumber" />')[0]
-				]).mouseover(function(){preventFade(1)}).mouseout(preventFade)[0]
+				])[0]
 			]).css("display", "none")
 		);
 		
@@ -159,6 +159,8 @@
 		$(document)[fn]("keydown", keyDown);
 		$(document)[fn]("mousewheel", scrollZoom);
 		$(document)[fn]("mousemove", mouseMove);
+		$(bottom)[fn]("mouseover", function(){preventFade(1)});
+		$(bottom)[fn]("mouseout", preventFade);
 	}
 	
 	function keyDown(event) {
