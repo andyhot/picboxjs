@@ -19,7 +19,7 @@
 	preload = {}, preloadPrev = new Image(), preloadNext = new Image(),
 	
 	// DOM elements
-	overlay, closeBtn, image, prevBtn, nextBtn, bottom, caption, number,
+	overlay, closeBtn, image, prevBtn, nextBtn, bottom, caption, nav, number,
 	
 	// Effects
 	fxOverlay, fxResize,
@@ -88,7 +88,7 @@
 		
 		$(overlay).css("opacity", 0).fadeTo(options.overlayFadeDuration, options.overlayOpacity);
 		$(bottom).css("display", "");
-		mouseMove(); // So controls dissapear if even if mouse is never moved
+		flashFade(bottom); // So controls dissapear if even if mouse is never moved
 		position();
 		setup(1);
 
@@ -171,11 +171,16 @@
 			: $.inArray(code, options.previousKeys) >= 0 ? previous()
 			: false;
 	}
-	
+
 	function mouseMove() {
+	  flashFade([bottom, prevBtn, zoomBtn, nextBtn]);
+	}
+	
+	function flashFade(targets, out) {
 		clearTimeout(timer);
-		$(bottom).fadeIn();
-		timer = setTimeout(function(){$(bottom).fadeOut()}, options.controlsFadeDelay);
+		$(targets).fadeIn();
+		targets = out ? $.merge(targets, out) : targets;
+		timer = setTimeout(function(){$(targets).fadeOut()}, options.controlsFadeDelay);
 	}
 	
 	function preventFade(over) {
@@ -239,6 +244,8 @@
 		$(image).attr("src", activeURL);
 		$(image).css("display", "");
 		overlay.className = "";
+		
+		flashFade([bottom], [prevBtn, zoomBtn, nextBtn]);
 	}
 	
 	function resizeImage(to, noAnim) {
