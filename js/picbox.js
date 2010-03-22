@@ -70,7 +70,7 @@
 			overlayFadeDuration: 200,		// Duration of the overlay fade-in and fade-out animations (in milliseconds)
 			resizeDuration: 300,			// Duration of each of the image resize animations (in milliseconds)
 			resizeEasing: "swing",			// swing uses the jQuery default easing
-			controlsFadeDelay: 2000,		// Time delay before controls fade when not moving the mouse (in milliseconds)
+			controlsFadeDelay: 3000,		// Time delay before controls fade when not moving the mouse (in milliseconds)
 			counterText: false,				// Counter text. Use {x} for current image and {y} for total e.g. Image {x} of {y}
 			hideFlash: true,				// Hides flash elements on the page when picbox is activated. NOTE: flash elements must have wmode parameter set to "opaque" or "transparent" if this is set to false
 			closeKeys: [27, 88, 67],		// Array of keycodes to close Picbox, default: Esc (27), 'x' (88), 'c' (67)
