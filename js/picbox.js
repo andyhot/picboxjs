@@ -88,7 +88,7 @@
 		
 		$(overlay).css("opacity", 0).fadeTo(options.overlayFadeDuration, options.overlayOpacity);
 		$(bottom).css("display", "");
-		flashFade(bottom); // So controls dissapear if even if mouse is never moved
+		mouseMove(); // So controls dissapear if even if mouse is never moved
 		position();
 		setup(1);
 
