@@ -209,7 +209,8 @@
 			overlay.className = "pbLoading";
 			$(image).css("display", "none");
 
-			$(caption).html(images[activeImage][1] || "");
+			if (!images[activeImage][1]) $(caption).html("").hide();
+			else $(caption).html(images[activeImage][1]).show();
 			$(number).html((((images.length > 1) && options.counterText) || "").replace(/{x}/, activeImage + 1).replace(/{y}/, images.length));
 			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; $(prevBtn).removeClass(greyed);}
 			if (nextImage >= 0) {preloadNext.src = images[nextImage][0]; $(nextBtn).removeClass(greyed);}
