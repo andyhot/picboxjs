@@ -312,20 +312,25 @@
 		return false;
 	}
 	
-	// Drag handler
-	
+	/*!
+		tinyDrag v0.9.2
+		(c) 2010 Ben Kay <http://bunnyfire.co.uk>
+
+		MIT license
+	*/
+
+
 	$.fn.tinyDrag = function(callback) {
 		return $.tinyDrag(this, callback);
 	}
 
 	$.tinyDrag = function(el, callback) {
-		var mouseStart, elStart, moved;
+		var mouseStart, elStart, moved, doc = $(document), abs = Math.abs;
 		el.mousedown(function(e) {
-			var elPos = el.offset();
 			moved = false;
 			mouseStart = {x: e.pageX, y: e.pageY};
 			elStart = {x: parseInt(el.css("left")), y: parseInt(el.css("top"))}
-			$(document).mousemove(drag).mouseup(stop);
+			doc.mousemove(drag).mouseup(stop);
 			return false;
 		});
 		
@@ -334,14 +339,14 @@
 			if (moved) {
 				el.css({left: elStart.x + (x - mouseStart.x), top: elStart.y + (y - mouseStart.y)});
 			} else {
-				if (Math.abs(x - mouseStart.x) > 1 || Math.abs(y - mouseStart.y) > 1)
-					moved = true
+				if (abs(x - mouseStart.x) > 1 || abs(y - mouseStart.y) > 1)
+					moved = true;
 			}
 			return false;
 		}
 		
 		function stop() {
-			$(document).unbind("mousemove", drag).unbind("mouseup");
+			doc.unbind("mousemove", drag).unbind("mouseup");
 			moved&&callback&&callback()
 		}
 		
