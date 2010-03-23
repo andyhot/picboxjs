@@ -212,6 +212,7 @@ Picbox = (function($) {
 	}
 
 	function scrollZoom(e) {
+		zoomBtn.addClass(zoomed);
 		var to = currentSize + e.wheel * (currentSize / 10);
 		return resizeImage(to);
 	}
