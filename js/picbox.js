@@ -1,5 +1,5 @@
 /*!
-	Picbox v1.1.1
+	Picbox v1.2
 	(c) 2010 Ben Kay <http://bunnyfire.co.uk>
 
 	Based on code from Slimbox v1.7 - The ultimate lightweight Lightbox clone
