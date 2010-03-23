@@ -338,13 +338,13 @@ Picbox = (function($) {
 	Element.implement({
 		
 		tinyDrag: function(callback) {
-			var offset, mouse, moved, target = this;
+			var offset, mouse, moved, target = this, doc = document, abs = Math.abs;
 			this.addEvent("mousedown", function(e) {
 				var elPos = this.getPosition();
 				moved = false;
 				mouse = {x: e.page.x, y: e.page.y};
 				offset = {x: mouse.x - elPos.x, y: mouse.y - elPos.y};
-				document.addEvent("mousemove", drag).addEvent("mouseup", stop);
+				doc.addEvent("mousemove", drag).addEvent("mouseup", stop);
 				return false;
 			});
 			
@@ -353,14 +353,14 @@ Picbox = (function($) {
 				if (moved) {
 					target.setStyles({left: x - offset.x, top: y - offset.y});
 				} else {
-					if (Math.abs(x - mouse.x) > 1 || Math.abs(y - mouse.y) > 1)
+					if (abs(x - mouse.x) > 1 || abs(y - mouse.y) > 1)
 						moved = true
 				}
 				return false;
 			}
 			
 			function stop() {
-				$(document).removeEvent("mousemove", drag).removeEvent("mouseup");
+				doc.removeEvent("mousemove", drag).removeEvent("mouseup");
 				moved&&callback&&callback()
 			}
 			
