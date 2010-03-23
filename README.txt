@@ -1,6 +1,6 @@
-PICBOX V2.1 README
+PICBOX V2.2 README
 ===================
-(c) Ben Kay 2010
+(c) Ben Kay 2010 <http://bunnyfire.co.uk>
 
 Based on Slimbox 1.7
 (c) Christophe Beyls 2007-2009 <http://www.digitalia.be>
