@@ -147,7 +147,8 @@ Picbox = (function($) {
 			overlay.className = "pbLoading";
 			image.setStyle("display", "none");
 
-			caption.set("html", images[activeImage][1] || "");
+			if (!images[activeImage][1]) $(caption).fade("hide");
+			else $(caption).set("html", images[activeImage][1]).fade("show");
 			number.set("html", (((images.length > 1) && options.counterText) || "").replace(/{x}/, activeImage + 1).replace(/{y}/, images.length));
 			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; prevBtn.removeClass(greyed);}
 			if (nextImage >= 0) {preloadNext.src = images[nextImage][0]; nextBtn.removeClass(greyed);}
