@@ -109,11 +109,16 @@ Picbox = (function($) {
 			: options.previousKeys.contains(code) ? previous()
 			: false;
 	}
-	
+
 	function mouseMove() {
+		flashFade([bottom, prevBtn, zoomBtn, nextBtn]);
+	}
+	
+	function flashFade(targets, out) {
 		clearTimeout(timer);
-		bottom.fade("in");
-		timer = setTimeout(function(){bottom.fade("out")}, options.controlsFadeDelay);
+		$$(targets).fade("in");
+		if (out) targets.extend(out);
+		timer = setTimeout(function(){$$(targets).fade("out")}, options.controlsFadeDelay);
 	}
 	
 	function preventFade(over) {
@@ -177,6 +182,8 @@ Picbox = (function($) {
 		image.set("src", activeURL);
 		image.setStyle("display", "");
 		overlay.className = "";
+
+		flashFade([bottom], [prevBtn, zoomBtn, nextBtn]);
 	}
 
 	function resizeImage(to, noAnim, c) {
@@ -292,7 +299,7 @@ Picbox = (function($) {
 				overlayFadeDuration: 200,		// Duration of the overlay fade-in and fade-out animations (in milliseconds)
 				resizeDuration: 300,			// Duration of each of the image resize animations (in milliseconds)
 				resizeEasing: Fx.Transitions.Sine.easeOut,		// false uses the mootools default transition)
-				controlsFadeDelay: 2000,		// Time delay before controls fade when not moving the mouse (in milliseconds)
+				controlsFadeDelay: 3000,		// Time delay before controls fade when not moving the mouse (in milliseconds)
 				counterText: false,				// Counter text. Use {x} for current image and {y} for total e.g. Image {x} of {y}
 				hideFlash: true,				// Hides flash elements on the page when picbox is activated. NOTE: flash elements must have wmode parameter set to "opaque" or "transparent" if this is set to false
 				closeKeys: [27, 88, 67],		// Array of keycodes to close Picbox, default: Esc (27), 'x' (88), 'c' (67)
