@@ -179,7 +179,7 @@
 	function flashFade(targets, out) {
 		clearTimeout(timer);
 		$(targets).fadeIn();
-		targets = out ? $.merge(targets, out) : targets;
+		if(out) $.merge(targets, out);
 		timer = setTimeout(function(){$(targets).fadeOut()}, options.controlsFadeDelay);
 	}
 	
@@ -209,7 +209,7 @@
 			overlay.className = "pbLoading";
 			$(image).css("display", "none");
 
-			if (!images[activeImage][1]) $(caption).html("").hide();
+			if (!images[activeImage][1]) $(caption).hide();
 			else $(caption).html(images[activeImage][1]).show();
 			$(number).html((((images.length > 1) && options.counterText) || "").replace(/{x}/, activeImage + 1).replace(/{y}/, images.length));
 			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; $(prevBtn).removeClass(greyed);}
@@ -260,8 +260,8 @@
 		var	width = preload.width * to,
 			height = preload.height * to,
 			// round these as some browsers don't like very small css values
-			left = imageX - (width / 2) >> 0,
-			top = imageY - (height / 2) >> 0,
+			left = Math.round(imageX - (width / 2)),
+			top = Math.round(imageY - (height / 2)),
 		
 		dur = noAnim ? 0 : options.resizeDuration, fn = (0 == to) ? function(){$(image).hide()}:function(){};
 		$(image).animate({width: width, height: height, top: top, left: left}, {queue:false, duration: dur, easing: options.resizeEasing, complete: fn});
