@@ -144,7 +144,7 @@
 	
 	function setup(open) {
  		if (options.hideFlash) {
-			$.each(["object", "embed"], function(i, val) {
+			$.each(["object", "embed", "applet"], function(i, val) {
 				$(val).each(function() {
 					// jQuery 1.4 doesn't allow .data() on object tags
 					if (open) this._picbox = this.style.visibility;
