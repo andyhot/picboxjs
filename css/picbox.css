@@ -19,11 +19,11 @@
 	display: block;
 	width: 50px;
 	height: 50px;
-	background: url(closebutton.png) no-repeat top left;
+	background: url(../images/picbox-closebutton.png) no-repeat top left;
 }
 
 .pbLoading {
-	background: #000 url(loading.gif) no-repeat center !important;
+	background: #000 url(../images/picbox-loading.gif) no-repeat center !important;
 }
 
 #pbImage {
@@ -71,7 +71,7 @@
 	height: 65px;
 	outline: none;
 	text-indent: -9000px;
-	background: url(navbtns.png) no-repeat;
+	background: url(../images/picbox-navbtns.png) no-repeat;
 }
 
 #pbPrevBtn {
