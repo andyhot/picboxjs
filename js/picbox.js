@@ -179,7 +179,7 @@
 	function flashFade(targets, out) {
 		clearTimeout(timer);
 		$(targets).fadeIn();
-		if(out) $.merge(targets, out);
+		targets = out ? $.merge(targets, out) : targets;
 		timer = setTimeout(function(){$(targets).fadeOut()}, options.controlsFadeDelay);
 	}
 	
@@ -209,7 +209,7 @@
 			overlay.className = "pbLoading";
 			$(image).css("display", "none");
 
-			if (!images[activeImage][1]) $(caption).hide();
+			if (!images[activeImage][1]) $(caption).html("").hide();
 			else $(caption).html(images[activeImage][1]).show();
 			$(number).html((((images.length > 1) && options.counterText) || "").replace(/{x}/, activeImage + 1).replace(/{y}/, images.length));
 			if (prevImage >= 0) {preloadPrev.src = images[prevImage][0]; $(prevBtn).removeClass(greyed);}
@@ -260,8 +260,8 @@
 		var	width = preload.width * to,
 			height = preload.height * to,
 			// round these as some browsers don't like very small css values
-			left = Math.round(imageX - (width / 2)),
-			top = Math.round(imageY - (height / 2)),
+			left = imageX - (width / 2) >> 0,
+			top = imageY - (height / 2) >> 0,
 		
 		dur = noAnim ? 0 : options.resizeDuration, fn = (0 == to) ? function(){$(image).hide()}:function(){};
 		$(image).animate({width: width, height: height, top: top, left: left}, {queue:false, duration: dur, easing: options.resizeEasing, complete: fn});
@@ -354,61 +354,106 @@
 	}
 
 
-/*! Copyright (c) 2009 Brandon Aaron (http://brandonaaron.net)
- * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
- * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
+/*! Copyright (c) 2013 Brandon Aaron (http://brandonaaron.net)
+ * Licensed under the MIT License (LICENSE.txt).
+ *
  * Thanks to: http://adomas.org/javascript-mouse-wheel/ for some pointers.
  * Thanks to: Mathias Bank(http://www.mathias-bank.de) for a scope bug fix.
+ * Thanks to: Seamus Leahy for adding deltaX and deltaY
  *
- * Version: 3.0.2
- * 
+ * Version: 3.1.1
+ *
  * Requires: 1.2.2+
  */
 
-var types = ['DOMMouseScroll', 'mousewheel'];
+var a = (function ($) {
 
-$.event.special.mousewheel = {
-	setup: function() {
-		if ( this.addEventListener )
-			for ( var i=types.length; i; )
-				this.addEventListener( types[--i], handler, false );
-		else
-			this.onmousewheel = handler;
-	},
-	
-	teardown: function() {
-		if ( this.removeEventListener )
-			for ( var i=types.length; i; )
-				this.removeEventListener( types[--i], handler, false );
-		else
-			this.onmousewheel = null;
-	}
-};
+    var toFix = ['wheel', 'mousewheel', 'DOMMouseScroll'];
+    var toBind = 'onwheel' in document || document.documentMode >= 9 ? ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'];
+    var lowestDelta, lowestDeltaXY;
 
-$.fn.extend({
-	mousewheel: function(fn) {
-		return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
-	},
-	
-	unmousewheel: function(fn) {
-		return this.unbind("mousewheel", fn);
-	}
+    if ($.event.fixHooks) {
+        for ( var i=toFix.length; i; ) {
+            $.event.fixHooks[ toFix[--i] ] = $.event.mouseHooks;
+        }
+    }
+
+    $.event.special.mousewheel = {
+        setup: function() {
+            if ( this.addEventListener ) {
+                for ( var i=toBind.length; i; ) {
+                    this.addEventListener( toBind[--i], handler, false );
+                }
+            } else {
+                this.onmousewheel = handler;
+            }
+        },
+
+        teardown: function() {
+            if ( this.removeEventListener ) {
+                for ( var i=toBind.length; i; ) {
+                    this.removeEventListener( toBind[--i], handler, false );
+                }
+            } else {
+                this.onmousewheel = null;
+            }
+        }
+    };
+
+    $.fn.extend({
+        mousewheel: function(fn) {
+            return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
+        },
+
+        unmousewheel: function(fn) {
+            return this.unbind("mousewheel", fn);
+        }
+    });
+
+
+    function handler(event) {
+        var orgEvent = event || window.event, args = [].slice.call( arguments, 1 ), delta = 0, deltaX = 0, deltaY = 0, absDelta = 0, absDeltaXY = 0, fn;
+        event = $.event.fix(orgEvent);
+        event.type = "mousewheel";
+
+        // Old school scrollwheel delta
+        if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta;  }
+        if ( orgEvent.detail     ) { delta = orgEvent.detail * -1; }
+
+        // New school wheel delta (wheel event)
+        if ( orgEvent.deltaY ) {
+            deltaY = orgEvent.deltaY * -1;
+            delta  = deltaY;
+        }
+        if ( orgEvent.deltaX ) {
+            deltaX = orgEvent.deltaX;
+            delta  = deltaX * -1;
+        }
+
+        // Webkit
+        if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY;      }
+        if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = orgEvent.wheelDeltaX * -1; }
+
+        // Look for lowest delta to normalize the delta values
+        absDelta = Math.abs(delta);
+        if ( !lowestDelta || absDelta < lowestDelta ) { lowestDelta = absDelta; }
+        absDeltaXY = Math.max( Math.abs(deltaY), Math.abs(deltaX) );
+        if ( !lowestDeltaXY || absDeltaXY < lowestDeltaXY ) { lowestDeltaXY = absDeltaXY; }
+
+        // Get a whole value for the deltas
+        fn = delta > 0 ? 'floor' : 'ceil';
+        delta  = Math[fn](delta/lowestDelta);
+        deltaX = Math[fn](deltaX/lowestDeltaXY);
+        deltaY = Math[fn](deltaY/lowestDeltaXY);
+
+        // Add event and delta to the front of the arguments
+        args.unshift(event, delta, deltaX, deltaY);
+
+        return ($.event.dispatch || $.event.handle).apply(this, args);
+    }
+
 });
 
-
-function handler(event) {
-	var args = [].slice.call( arguments, 1 ), delta = 0, returnValue = true;
-	
-	event = $.event.fix(event || window.event);
-	event.type = "mousewheel";
-	
-	if ( event.wheelDelta ) delta = event.wheelDelta/120;
-	if ( event.detail     ) delta = -event.detail/3;
-	
-	// Add events and delta to the front of the arguments
-	args.unshift(event, delta);
-
-	return $.event.handle.apply(this, args);
-}
+a(jQuery);
 
 })(jQuery);
